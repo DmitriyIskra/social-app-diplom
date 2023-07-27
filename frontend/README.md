@@ -1,0 +1,1 @@
+![CI](https://github.com/DmitriyIskra/chat-frontend/actions/workflows/web.yml/badge.svg)
