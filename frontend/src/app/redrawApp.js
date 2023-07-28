@@ -45,7 +45,7 @@ export default class RedrawApp {
    
         this.sendToWs(data); 
     }
-    // Отправляем данные ws
+    // Отправляем данные ws 
     sendToWs(data) {
         this.ws.sendWs(data); 
     }

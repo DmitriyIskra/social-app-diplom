@@ -8,6 +8,9 @@ const WS = require('ws');
 const fs = require('fs');
 const koaStatic = require('koa-static');
 const path = require('path');
+const multer = require('@koa/multer');
+
+
 
 const { chat } = require('./db/chat');
 const { stat } = require('./db/stat');
@@ -21,21 +24,36 @@ const app = new Koa();
 
 const public = path.join(__dirname, '/public');
 
+
+
 app.use(CORS());
 
 app.use(koaBody({  
     text: true,      
     urlencoded: true, 
     multipart: true, 
-    json: true,   
+    json: true,    
   }));  
 
 
 app.use(koaStatic(public));
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/uploads/')
+  },
+  filename: function (req, file, cb) {
+    var fileFormat = (file.originalname).split('.')
+    cb(null, file.fieldname + '_' + Date.now() + '.' + fileFormat[fileFormat.length - 1])
+  }
+})
+
+const upload = multer({dest : './public'});
+
+app.use(upload.any());
 
 
-router.get('/getStart/', async (ctx) => { 
+router.get('/getStart/', async (ctx) => {  
   // сюда будем собирать последние десять сообщений при старте
   const messages = [];
   let resp = null;
@@ -45,7 +63,7 @@ router.get('/getStart/', async (ctx) => {
     // индекс крайнего элемента
     let i = chat.length - 1;
     // индекс элемента до которого мы берем 10 первых сообщений
-    const stopIndex = i - 10
+    const stopIndex = i - 10 
 
     // собираем первые 10 загружаемых элементов
     for( i; i > stopIndex; i -= 1) {
@@ -70,16 +88,17 @@ router.get('/getStart/', async (ctx) => {
   const body = JSON.stringify(resp)
 
   ctx.response.body = body; 
-  ctx.response.status = 200; 
+  ctx.response.status = 200;  
 })
 
   
-router.post('/addFile/', async ctx => {  
-  const formData =  ctx.request.body
-  console.log('file', Array.from(formData));
+router.post('/addFile/', async ctx => {  //upload.single('file'),
+  // const formData =  ctx.request.body
+  // console.log('file', Array.from(formData));
+  console.log('ctx.request.body', ctx.request.file); 
 
-  ctx.response.status = 200;         
-}) 
+  ctx.response.status = 200;            
+})  
  
 
 // app.use(router());  

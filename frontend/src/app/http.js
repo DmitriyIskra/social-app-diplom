@@ -16,7 +16,7 @@ export default class Http {
     async create(formData) {
         return await fetch(`${this.domain}addFile/`, { 
             method: 'POST',
-            body: formData 
+            body: formData
         })  
-    }
+    } 
 }
