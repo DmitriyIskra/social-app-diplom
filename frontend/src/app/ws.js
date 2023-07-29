@@ -12,7 +12,6 @@ export default class Ws {
         
         this.ws.addEventListener('message', (e) => { 
             const result = JSON.parse(e.data);
-
             
             const {chat, stat} = result;
 

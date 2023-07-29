@@ -41,7 +41,7 @@ const chat = [
     },
     {
         id: 'chaos',
-        message: 'If you want now more, go by link https://netology.ru/, connect to our funy company',
+        message: 'If you want now more, go by link https://netology.ru/, connect to our funy company', 
         date: '',
     },
     {

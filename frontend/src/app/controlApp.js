@@ -61,11 +61,7 @@ export default class ControllApp {
     }
 
     onChange(e) {
-        const file = e.target.files && e.target.files[0];
-        console.log(file.name)
-        const formData = new FormData(); //this.formAddFile
-
-        formData.append('file', file)
+        const formData = new FormData(this.formAddFile);
         
         this.redraw.getNewFile(formData);
     }

@@ -31,7 +31,7 @@ app.use(CORS());
 app.use(koaBody({  
     text: true,      
     urlencoded: true, 
-    multipart: true, 
+    // multipart: true, 
     json: true,    
   }));  
 
@@ -40,18 +40,26 @@ app.use(koaStatic(public));
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './public/uploads/')
+    switch (req.url) {
+      case '/addFile/':
+       cb(null, public + '/files');
+       break;
+      case '/add-voice/':
+        cb(null, public + '/record-audio');
+        break;
+      case '/add-record-video/':
+        cb(null, public + '/record-video'); 
+        break; 
+      default:
+        console.log('unknown url');
+    } 
   },
   filename: function (req, file, cb) {
-    var fileFormat = (file.originalname).split('.')
-    cb(null, file.fieldname + '_' + Date.now() + '.' + fileFormat[fileFormat.length - 1])
+    cb(null, uuid.v4() + file.originalname);
   }
 })
 
-const upload = multer({dest : './public'});
-
-app.use(upload.any());
-
+const upload = multer({storage});
 
 router.get('/getStart/', async (ctx) => {  
   // сюда будем собирать последние десять сообщений при старте
@@ -72,7 +80,7 @@ router.get('/getStart/', async (ctx) => {
      
     resp = {
       chat: { messages },
-      stat: [ stat ],
+      stat: [ stat ], 
     }
   }   
   else {  
@@ -92,13 +100,43 @@ router.get('/getStart/', async (ctx) => {
 })
 
   
-router.post('/addFile/', async ctx => {  //upload.single('file'),
-  // const formData =  ctx.request.body
-  // console.log('file', Array.from(formData));
-  console.log('ctx.request.body', ctx.request.file); 
+router.post('/addFile/', upload.single('file'), async ctx => {  
+  const { fieldname: type, originalname: name, mimetype, path: url} = ctx.request.file;
+  // Добавляем статистику
+  stat.add('files');
 
-  ctx.response.status = 200;            
+  const dataMessage = {
+    type,
+    id: 'You', 
+    message: `file uploaded: ${name}`, 
+    name, 
+    mimetype,
+    url,
+    date: format(new Date(), 'dd.MM.yy HH:mm'),    
+  } 
+ 
+  chat.push(dataMessage);
+
+  const body = JSON.stringify(chat[chat.length - 1]); 
+  ctx.response.body = body;
+
+  ctx.response.status = 200;              
 })  
+
+// router.post('/add-voice/', upload.single('file'), async ctx => { 
+//   console.log('ctx.request.file', ctx.request.file); 
+//   stat.add('files');
+//   console.log('stat', stat)
+
+//   ctx.response.status = 200;            
+// })
+
+// router.post('/add-record-video/', upload.single('file'), async ctx => { 
+//   console.log('ctx.request.file', ctx.request.file); 
+  
+
+//   ctx.response.status = 200;            
+// })
  
 
 // app.use(router());  

@@ -35,8 +35,10 @@ export default class RedrawApp {
         this.redrawSharedStats(stat[0]);
     }
 
-    getNewFile(formData) {
-        this.http.create(formData);
+    async getNewFile(formData) {
+        const response = await this.http.create(formData);
+        // const json = await response;
+        const data = await response.json();
     }
 
     // Собираем данные для отправки в ws
