@@ -22,7 +22,7 @@ const router = new Router();
 
 const app = new Koa();    
 
-const public = path.join(__dirname, '/public');
+const public = path.join(__dirname, '/public'); 
 
 // для добавления имени новой папки куда загружен файл
 // что-бы пользоваться глобально 
@@ -79,7 +79,7 @@ router.get('/getStart/', async (ctx) => {
   if(chat.length > 10) {
     // индекс крайнего элемента
     let i = chat.length - 1;
-    // индекс элемента до которого мы берем 10 первых сообщений
+    // индекс элемента до которого мы берем 10 первых сообщений 
     const stopIndex = i - 10 
 
     // собираем первые 10 загружаемых элементов
@@ -102,13 +102,26 @@ router.get('/getStart/', async (ctx) => {
     }
   }
     
-  const body = JSON.stringify(resp)
+  const body = JSON.stringify(resp) 
 
   ctx.response.body = body; 
   ctx.response.status = 200;  
 })
   
   
+router.get('/downloadFile/:data', async (ctx) => {  
+  const{ data } = ctx.params; 
+  const arr = data.split(':'); 
+ 
+  ; 
+  const pathToFile = public + '/' + 'files' + '/' + arr[0] + '/' + arr[1];
+  console.log('ctx.params', pathToFile) 
+  ctx.response.body = fs.createReadStream(pathToFile);   
+  console.log('ctx.params', ctx.response.body); 
+  ctx.response.status = 200;  
+      
+}) 
+
 router.post('/addFile/', upload.single('file'), async ctx => {  
   const { fieldname: type, originalname: name, mimetype, path: url} = ctx.request.file;
   // Добавляем статистику
@@ -116,15 +129,15 @@ router.post('/addFile/', upload.single('file'), async ctx => {
 // file:///I:\WebDevelopment\current\netology\Дипломные\social-app\backend\public\files\79151858-fdc9-432d-84b7-9d0ea163ebda\267.jpg
   const dataMessage = {    
     id: 'You',    
-    message: `file uploaded: ${name}`,       
-    name,  
+    message: `file uploaded: ${name}`,         
+    name,   
     mimetype,
-    url: public + '/' + 'files' + '/' + subFolder + '/' + name,  
-    date: format(new Date(), 'dd.MM.yy HH:mm'),       
+    url: subFolder + ':' + name,//public + '/' + 'files' + '/' + subFolder + '/' + name,    
+    date: format(new Date(), 'dd.MM.yy HH:mm'),        
   }   
-   
-  chat.push(dataMessage);
-
+    
+  chat.push(dataMessage);  
+ 
   // Формируем данные для ответа клиенту 
   const resp = {
     chat: {  

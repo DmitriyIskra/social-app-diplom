@@ -25,7 +25,7 @@ export default class RedrawApp {
         this.ws.registerWsEvents(this.renderingMessage, this.redrawSharedStats);
 
 
-        const response = await this.http.read();
+        const response = await this.http.read(null, 'getStart/');
 
         const json = await response.json(); 
 
@@ -46,6 +46,25 @@ export default class RedrawApp {
         if (chat) this.renderingMessage(chat);
 
         if(stat) this.redrawSharedStats(stat[0]);
+    }
+
+    async downloadFile(path) {
+        // const json = JSON.stringify({url});
+
+        const response = await this.http.read(path, 'downloadFile/');
+        const blob = await response.blob();
+
+        let link = document.createElement('a');
+        link.style = 'position:fixed;top:10px;left:10px;width:100px';
+        link.href = URL.createObjectURL(blob);
+        link.download = '267.jpg';
+        document.body.append(link);
+        
+        link.click()
+        setTimeout(() => {
+            // link.remove();
+            URL.revokeObjectURL(link.href)
+        },30)
     }
 
 

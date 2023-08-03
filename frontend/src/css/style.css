@@ -130,6 +130,9 @@ a {
  
 .form-add-file {
     position: absolute;
+
+    height: 100%;
+    width: 100%;
 }
 
 .add-file {

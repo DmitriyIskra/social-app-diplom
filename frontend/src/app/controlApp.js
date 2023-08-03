@@ -12,6 +12,8 @@ export default class ControllApp {
         this.onSubmit = this.onSubmit.bind(this);
         this.onScroll = this.onScroll.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.onDragOver = this.onDragOver.bind(this);
+        this.onDrop = this.onDrop.bind(this);
     }
 
     init() {
@@ -25,6 +27,8 @@ export default class ControllApp {
         this.formText.addEventListener('submit', this.onSubmit);
         this.messages.addEventListener('scroll', this.onScroll);
         this._addFile.addEventListener('change', this.onChange);
+        this.formAddFile.addEventListener('dragover', this.onDragOver);
+        this.formAddFile.addEventListener('drop', this.onDrop);
     }
 
     onClick(e) {
@@ -38,6 +42,13 @@ export default class ControllApp {
 
         if(e.target.matches('.wr-add-file')) {
             this.redraw.addFile();
+        }
+
+        if(e.target.matches('.link-download')) {
+            e.preventDefault();
+            const path = e.target.dataset.path;
+            // const string = url.substr(url.indexOf('files'));
+            this.redraw.downloadFile(path)
         }
     }
  
@@ -64,5 +75,19 @@ export default class ControllApp {
         const formData = new FormData(this.formAddFile);
         
         this.redraw.getNewFile(formData);
+    }
+
+    onDragOver(e) {
+        e.preventDefault();
+    }
+
+    onDrop(e) {
+        e.preventDefault();
+        const file = e.dataTransfer.files && e.dataTransfer.files[0];
+
+        const formData = new FormData();
+        formData.append('file', file);
+        this.redraw.getNewFile(formData);
+        // console.log('dropFile', file); // видим что файл мы все таки получили
     }
 } 

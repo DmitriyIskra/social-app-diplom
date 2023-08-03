@@ -3,20 +3,27 @@ export default class Http {
         this.domain = domain;
     }
 
-    async read(formData) {
-        return await fetch(`${this.domain}getStart/`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json', // чтоб не получать данные как строку, так как мы по сути отправляем строку JSON
-            },
-            
-        })
+    async read(data, method) {
+        if(method === 'getStart/') {
+            return await fetch(`${this.domain}${method}`, { // getStart/
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json', // чтоб не получать данные как строку, так как мы по сути отправляем строку JSON
+                },
+                
+            })
+        }
+
+        if(method === 'downloadFile/') {
+            console.log('downloadFile/', `${this.domain}${method}${data}`)
+            return await fetch(`${this.domain}${method}${data}`)
+        }
     }
 
     async create(formData) {
         return await fetch(`${this.domain}addFile/`, { 
             method: 'POST',
-            body: formData
+            body: formData 
         })  
     } 
 }

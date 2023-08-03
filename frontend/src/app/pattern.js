@@ -6,7 +6,6 @@ export default class Pattern {
     }
 
     createMessage(data) {
-        console.log(data)
         const{id, message, date , url, mimetype} = data; 
 
             // Обертка для сообщения
@@ -33,12 +32,14 @@ export default class Pattern {
             // если там есть ссылка преобразуем
             if(this.regExp.test(message)) {
                 text.innerHTML = message.replace(this.regExpReplace, this.template);
-            } else if (url) {               
+            } else if (url) {              
                 // если есть url значит это файл, преобразуем
                 const link = document.createElement('a');
-                link.href = url;
+                link.classList.add('link-download')
+                link.href = '#'
+                link.setAttribute('data-path', url)
                 link.textContent = 'download file'
-                console.log('link', link)
+
                 text.append(link)
             } else {
                 text.textContent = message;
@@ -55,20 +56,20 @@ export default class Pattern {
             wrapper.append(name);
 
             // Превью, если есть необходимость
-            if(mimetype) {
-                const wrPrev = document.createElement('div');
-                wrPrev.classList.add('wr-prev-message');
-                switch(mimetype) {
-                    case 'image/jpeg': 
-                        const prev = document.createElement('img');
-                        prev.classList.add('prev-message');
-                        prev.src = url;
-                        console.log('url pattern', url)
-                        wrPrev.append(prev);
-                }
+            // if(mimetype) {
+            //     const wrPrev = document.createElement('div');
+            //     wrPrev.classList.add('wr-prev-message');
+            //     switch(mimetype) {
+            //         case 'image/jpeg': 
+            //             const prev = document.createElement('img');
+            //             prev.classList.add('prev-message');
+            //             prev.src = url;
+            //             console.log('url pattern', url)
+            //             wrPrev.append(prev);
+            //     }
 
-                wrapper.append(wrPrev);
-            }
+            //     wrapper.append(wrPrev);
+            // }
 
             wrapper.append(text);
             wrapper.append(dateMessage);
