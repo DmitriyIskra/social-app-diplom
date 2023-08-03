@@ -8,7 +8,7 @@ export default class Ws {
         this.ws.addEventListener('open', (e) => {
             console.log('ws open');
         })
-        
+         
         
         this.ws.addEventListener('message', (e) => { 
             const result = JSON.parse(e.data);

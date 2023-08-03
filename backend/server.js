@@ -24,7 +24,9 @@ const app = new Koa();
 
 const public = path.join(__dirname, '/public');
 
-
+// для добавления имени новой папки куда загружен файл
+// что-бы пользоваться глобально 
+let subFolder;
 
 app.use(CORS());
 
@@ -42,8 +44,15 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     switch (req.url) {
       case '/addFile/':
-       cb(null, public + '/files');
-       break;
+        // создаем имя для папки
+        subFolder = uuid.v4();
+        // прописываем путь к создаваемой папке
+        const uploadFolder = public + '/files' + '/' + subFolder;
+        // Создаем папку
+        fs.mkdirSync(uploadFolder);
+        // указываем эту папку для сохраннеия файла
+        cb(null, uploadFolder);
+        break;
       case '/add-voice/':
         cb(null, public + '/record-audio');
         break;
@@ -55,7 +64,7 @@ const storage = multer.diskStorage({
     } 
   },
   filename: function (req, file, cb) {
-    cb(null, uuid.v4() + file.originalname);
+    cb(null, file.originalname);
   }
 })
 
@@ -98,28 +107,37 @@ router.get('/getStart/', async (ctx) => {
   ctx.response.body = body; 
   ctx.response.status = 200;  
 })
-
+  
   
 router.post('/addFile/', upload.single('file'), async ctx => {  
   const { fieldname: type, originalname: name, mimetype, path: url} = ctx.request.file;
   // Добавляем статистику
   stat.add('files');
-
-  const dataMessage = {
-    type,
-    id: 'You', 
-    message: `file uploaded: ${name}`, 
-    name, 
+// file:///I:\WebDevelopment\current\netology\Дипломные\social-app\backend\public\files\79151858-fdc9-432d-84b7-9d0ea163ebda\267.jpg
+  const dataMessage = {    
+    id: 'You',    
+    message: `file uploaded: ${name}`,       
+    name,  
     mimetype,
-    url,
-    date: format(new Date(), 'dd.MM.yy HH:mm'),    
-  } 
- 
+    url: public + '/' + 'files' + '/' + subFolder + '/' + name,  
+    date: format(new Date(), 'dd.MM.yy HH:mm'),       
+  }   
+   
   chat.push(dataMessage);
 
-  const body = JSON.stringify(chat[chat.length - 1]); 
-  ctx.response.body = body;
+  // Формируем данные для ответа клиенту 
+  const resp = {
+    chat: {  
+      messages: [ 
+        chat[chat.length - 1],   
+      ]   
+    },
+    stat: [stat], 
+  }
 
+  const body = JSON.stringify(resp);  
+  ctx.response.body = body;
+ 
   ctx.response.status = 200;              
 })  
 

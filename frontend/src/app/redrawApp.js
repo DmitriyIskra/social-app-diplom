@@ -35,11 +35,19 @@ export default class RedrawApp {
         this.redrawSharedStats(stat[0]);
     }
 
-    async getNewFile(formData) {
+
+    async getNewFile(formData) { 
         const response = await this.http.create(formData);
-        // const json = await response;
+  
         const data = await response.json();
+
+        const {chat, stat} = data;
+        const {id, message, date , url} = chat
+        if (chat) this.renderingMessage(chat);
+
+        if(stat) this.redrawSharedStats(stat[0]);
     }
+
 
     // Собираем данные для отправки в ws
     getMessageWs(type, message) {
@@ -47,7 +55,7 @@ export default class RedrawApp {
    
         this.sendToWs(data); 
     }
-    // Отправляем данные ws 
+    // Отправляем данные на сервер через ws 
     sendToWs(data) {
         this.ws.sendWs(data); 
     }
@@ -105,14 +113,17 @@ export default class RedrawApp {
         this.messages.scrollTo(0, this.messages.scrollTop + 15)
     }
 
+    // открытие поля статистики на клиенте
     openShare() {
         this.share.classList.add('wr-side-shared_active');
     }
 
+    // закрытие поля статистики на клиенте
     closeShare() {
         this.share.classList.remove('wr-side-shared_active');
     }
 
+    // заставляем работать кнопку добавления файла
     addFile() {
         this._addFile.click(); 
     }

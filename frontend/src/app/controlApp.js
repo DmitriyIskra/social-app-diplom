@@ -58,9 +58,9 @@ export default class ControllApp {
         if(e.target.scrollTop) {
             
         }
-    }
+    } 
 
-    onChange(e) {
+    onChange(e) {  
         const formData = new FormData(this.formAddFile);
         
         this.redraw.getNewFile(formData);
