@@ -109,30 +109,34 @@ router.get('/getStart/', async (ctx) => {
 })
   
   
-router.get('/downloadFile/:data', async (ctx) => {  
+router.get('/downloadFile/:data', async (ctx) => {     
   const{ data } = ctx.params; 
+  // разбираем полученный путь на имя папки и имя файла   
   const arr = data.split(':'); 
  
-  ; 
   const pathToFile = public + '/' + 'files' + '/' + arr[0] + '/' + arr[1];
-  console.log('ctx.params', pathToFile) 
-  ctx.response.body = fs.createReadStream(pathToFile);   
-  console.log('ctx.params', ctx.response.body); 
-  ctx.response.status = 200;  
-      
+   
+  ctx.response.body = fs.createReadStream(pathToFile);
+ 
+  ctx.response.status = 200;   
+       
 }) 
 
 router.post('/addFile/', upload.single('file'), async ctx => {  
   const { fieldname: type, originalname: name, mimetype, path: url} = ctx.request.file;
   // Добавляем статистику
-  stat.add('files');
-// file:///I:\WebDevelopment\current\netology\Дипломные\social-app\backend\public\files\79151858-fdc9-432d-84b7-9d0ea163ebda\267.jpg
-  const dataMessage = {    
-    id: 'You',    
-    message: `file uploaded: ${name}`,         
+
+  if(mimetype.startsWith('image')) stat.add('image-files'); 
+  if(mimetype.startsWith('video')) stat.add('video-files'); 
+  if(mimetype.startsWith('audio')) stat.add('audio-files'); 
+ 
+
+  const dataMessage = {     
+    id: 'You',       
+    message: `file uploaded: ${name}`,          
     name,   
     mimetype,
-    url: subFolder + ':' + name,//public + '/' + 'files' + '/' + subFolder + '/' + name,    
+    url: subFolder + ':' + name,    
     date: format(new Date(), 'dd.MM.yy HH:mm'),        
   }   
     

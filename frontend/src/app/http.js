@@ -15,7 +15,6 @@ export default class Http {
         }
 
         if(method === 'downloadFile/') {
-            console.log('downloadFile/', `${this.domain}${method}${data}`)
             return await fetch(`${this.domain}${method}${data}`)
         }
     }

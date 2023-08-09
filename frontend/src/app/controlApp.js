@@ -40,7 +40,7 @@ export default class ControllApp {
             this.redraw.closeShare();
         }
 
-        if(e.target.matches('.wr-add-file')) {
+        if(e.target.closest('.wr-add-file')) {
             this.redraw.addFile();
         }
 

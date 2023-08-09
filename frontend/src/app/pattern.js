@@ -6,8 +6,8 @@ export default class Pattern {
     }
 
     createMessage(data) {
-        const{id, message, date , url, mimetype} = data; 
-
+        const {id, message, date , url, mimetype, name: nameFile} = data; 
+            console.log(nameFile)
             // Обертка для сообщения
             const wrapper = document.createElement('div');
             wrapper.classList.add('wrapper-message')
@@ -34,13 +34,21 @@ export default class Pattern {
                 text.innerHTML = message.replace(this.regExpReplace, this.template);
             } else if (url) {              
                 // если есть url значит это файл, преобразуем
-                const link = document.createElement('a');
-                link.classList.add('link-download')
-                link.href = '#'
-                link.setAttribute('data-path', url)
-                link.textContent = 'download file'
 
-                text.append(link)
+                const link = document.createElement('a');
+                const title = document.createElement('div');
+                link.classList.add('link-download');
+                link.href = '#';
+                // отсюда мы будем получаь путь для создания
+                // ссылки для скачивания
+                link.setAttribute('data-path', url);
+                link.textContent = nameFile;
+
+                title.textContent = 'download file:';
+                
+
+                text.append(title);
+                text.append(link);
             } else {
                 text.textContent = message;
             }

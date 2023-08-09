@@ -1,6 +1,6 @@
 const stat = {
-    videos: 0,
-    files: 0,
+    "video-files": 0,
+    "image-files": 0,
     "audio-files": 0,
     links: 1,
     voice: 0, 

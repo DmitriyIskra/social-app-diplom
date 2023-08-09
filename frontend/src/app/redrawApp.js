@@ -49,20 +49,22 @@ export default class RedrawApp {
     }
 
     async downloadFile(path) {
-        // const json = JSON.stringify({url});
-
+        // в path мы помещаем имя папки в которой лежит необходимый файл
+        // и имя файла
         const response = await this.http.read(path, 'downloadFile/');
         const blob = await response.blob();
+
+        const arr = path.split(':');
 
         let link = document.createElement('a');
         link.style = 'position:fixed;top:10px;left:10px;width:100px';
         link.href = URL.createObjectURL(blob);
-        link.download = '267.jpg';
+        link.download = arr[1];
         document.body.append(link);
         
         link.click()
         setTimeout(() => {
-            // link.remove();
+            link.remove();
             URL.revokeObjectURL(link.href)
         },30)
     }
