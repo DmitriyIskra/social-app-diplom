@@ -70,6 +70,20 @@ const storage = multer.diskStorage({
 
 const upload = multer({storage});
 
+// можно каждому сообщению задавать уникальный номер, сохранять его на клиенте в data атрибут
+// и взяв его найти под каким индексом находится это сообщение в базе данных
+// получать следующие десять от него считая назад и отрисовывать их
+// также нужно понимать сколько осталось сообщений для загрузки, т.е. если индекс меньше 9, значит нужно делать
+// отбор сообщений не 10 штук, а до 0-ого индекса 
+
+// второй вариант сделать счетчик сколько раз сделан запрос на следующие десять сообщений
+// и от него отталкиваться
+// если актуальное число сообщений при делении на 10 дает остаток например nn%10, то целое число - это 
+// количество возможных запросов по 10 сообщений (это должен считать счетчик), а дробная часть это количесвто 
+// сообщений по истечению количества возможных запросов по 10 сообщений 
+
+
+
 router.get('/getStart/', async (ctx) => {  
   // сюда будем собирать последние десять сообщений при старте
   const messages = [];
@@ -122,18 +136,29 @@ router.get('/downloadFile/:data', async (ctx) => {
        
 }) 
 
+router.get('/reloadingMessages/:numId', async ctx => {  
+  const {numId} = ctx.params;
+  console.log(numId)
+ 
+  ctx.response.status = 200;
+})
+
 router.post('/addFile/', upload.single('file'), async ctx => {  
   const { fieldname: type, originalname: name, mimetype, path: url} = ctx.request.file;
+  
+  
   // Добавляем статистику
-
   if(mimetype.startsWith('image')) stat.add('image-files'); 
   if(mimetype.startsWith('video')) stat.add('video-files'); 
   if(mimetype.startsWith('audio')) stat.add('audio-files'); 
  
-
+  // расщитываем порядковый номер нового сообщения
+  let newNumId = chat[chat.length - 1].numId + 1; 
+  
   const dataMessage = {     
-    id: 'You',       
-    message: `file uploaded: ${name}`,          
+    id: 'You',  
+    numId: newNumId,     
+    message: `${newNumId}file uploaded: ${name}`,          
     name,   
     mimetype,
     url: subFolder + ':' + name,    
@@ -217,9 +242,13 @@ wsServer.on('connection', stream => {
         stat.links += amountDomains;        
       }  
 
+      // расщитываем порядковый номер нового сообщения
+      let newNumId = chat[chat.length - 1].numId + 1; 
+
       const dataMessage = {
         id: 'You',
-        message, 
+        numId: newNumId,
+        message: `${newNumId}message`,
         date: format(new Date(), 'dd.MM.yy HH:mm'),
       }
       // добавляем данные о сообщении в общую базу чата

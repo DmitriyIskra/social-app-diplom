@@ -4,7 +4,7 @@ export default class ControllApp {
         this.app = this.redraw.app;
         this.formText = this.redraw.formText;
         this.inputText = this.redraw.inputText;
-        this.messages = this.redraw.messages;
+        this.messages = this.redraw.messages; 
         this.formAddFile = this.redraw.formAddFile;
         this._addFile = this.redraw._addFile;
 
@@ -66,8 +66,9 @@ export default class ControllApp {
     }
 
     onScroll(e) {
-        if(e.target.scrollTop) {
-            
+        console.log(e.target.scrollTop)
+        if(e.target.scrollTop === 0) {
+            this.redraw.reloadingMessages();
         }
     } 
 

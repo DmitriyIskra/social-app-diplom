@@ -6,11 +6,11 @@ export default class Pattern {
     }
 
     createMessage(data) {
-        const {id, message, date , url, mimetype, name: nameFile} = data; 
-            console.log(nameFile)
+        const {id, numId, message, date , url, mimetype, name: nameFile} = data; 
             // Обертка для сообщения
             const wrapper = document.createElement('div');
             wrapper.classList.add('wrapper-message')
+            wrapper.dataset.numid = numId;
 
             // поле именеи
             const name = document.createElement('div');
@@ -44,7 +44,7 @@ export default class Pattern {
                 link.setAttribute('data-path', url);
                 link.textContent = nameFile;
 
-                title.textContent = 'download file:';
+                title.textContent = `${numId}download file:`;
                 
 
                 text.append(title);

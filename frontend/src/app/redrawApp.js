@@ -76,6 +76,7 @@ export default class RedrawApp {
    
         this.sendToWs(data); 
     }
+
     // Отправляем данные на сервер через ws 
     sendToWs(data) {
         this.ws.sendWs(data); 
@@ -91,6 +92,16 @@ export default class RedrawApp {
             
             counter += 1;
         }
+    }
+
+    async reloadingMessages() {
+        // получаем (первый попавшийся), т.е. самый первый .wrapper-message
+        const firstMessage = this.messages.querySelector('.wrapper-message');
+        // забираем из data атрибута индекс сообщения, под которым оно находится на сервере
+        const numid = firstMessage.dataset.numid;
+        console.log(numid)
+
+        const response = await this.http.read(numid, 'reloadingMessages/');
     }
 
     // отрисовываем сообщение в поле для сообщений
