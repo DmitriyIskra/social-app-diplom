@@ -20,7 +20,7 @@ const chat = [
     {
         id: 'chaos',
         numId: 3,
-        message: '3If you want now more, go by link https://netology.ru/, connect to our funy company',
+        message: '3If you want now more, go by link https://netology.ru/, connect to our funy company 3If you want now more, go by link https://netology.ru/, connect to our funy company 3If you want now more, go by link https://netology.ru/, connect to our funy company 3If you want now more, go by link https://netology.ru/, connect to our funy company 3If you want now more, go by link https://netology.ru/, connect to our funy company',
         date: '',
     },
     {
@@ -128,7 +128,7 @@ const chat = [
     {
         id: 'chaos',
         numId: 21,
-        message: '21If you want now more, go by link https://netology.ru/, connect to our funy company',
+        message: '21If you want now more, go by link https://netology.ru/, connect to our funy company 21If you want now more, go by link https://netology.ru/, connect to our funy company 21If you want now more, go by link https://netology.ru/, connect to our funy company',
         date: '',
     },
     {
@@ -187,8 +187,44 @@ const chat = [
     },
     {
         id: 'chaos',
-        numId: 31,
-        message: '31If you want now more, go by link https://netology.ru/, connect to our funy company',
+        numId: 32,
+        message: '32If you want now more, go by link https://netology.ru/, connect to our funy company',
+        date: '',
+    },
+    {
+        id: 'chaos',
+        numId: 33,
+        message: '33If you want now more, go by link https://netology.ru/, connect to our funy company',
+        date: '',
+    },
+    {
+        id: 'chaos',
+        numId: 34,
+        message: '34If you want now more, go by link https://netology.ru/, connect to our funy company',
+        date: '',
+    },
+    {
+        id: 'chaos',
+        numId: 35,
+        message: '35If you want now more, go by link https://netology.ru/, connect to our funy company',
+        date: '',
+    },
+    {
+        id: 'chaos',
+        numId: 36,
+        message: '36If you want now more, go by link https://netology.ru/, connect to our funy company',
+        date: '',
+    },
+    {
+        id: 'chaos',
+        numId: 37,
+        message: '37If you want now more, go by link https://netology.ru/, connect to our funy company',
+        date: '',
+    },
+    {
+        id: 'chaos',
+        numId: 38,
+        message: '38If you want now more, go by link https://netology.ru/, connect to our funy company',
         date: '',
     },
 ];

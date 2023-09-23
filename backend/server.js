@@ -9,15 +9,15 @@ const fs = require('fs');
 const koaStatic = require('koa-static');
 const path = require('path');
 const multer = require('@koa/multer');
-
-
-
+ 
 const { chat } = require('./db/chat');
 const { stat } = require('./db/stat');
+const { geolocation } = require('./db/geolocation.js');
+const { notifi } = require('./db/notifi');
 
 const regExp = /(?:http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(?:\/\S*)?/g;
 
-const Router = require('koa-router'); 
+const Router = require('koa-router');  
 const router = new Router();    
 
 const app = new Koa();    
@@ -27,6 +27,8 @@ const public = path.join(__dirname, '/public');
 // для добавления имени новой папки куда загружен файл
 // что-бы пользоваться глобально 
 let subFolder;
+let typeFolder;
+let uploadFolder;
 
 app.use(CORS());
 
@@ -42,31 +44,77 @@ app.use(koaStatic(public));
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    console.log('req.url', req.url)
     switch (req.url) {
       case '/addFile/':
         // создаем имя для папки
         subFolder = uuid.v4();
+
+
+        // сохраняем по типу файла
+        if(file.mimetype.startsWith('image')) {
+          typeFolder = 'img';
+        }; 
+        if(file.mimetype.startsWith('video')) {
+          typeFolder = 'video-files';
+        }; 
+        if(file.mimetype.startsWith('audio')) {
+          typeFolder = 'audio-files';
+        };
+
         // прописываем путь к создаваемой папке
-        const uploadFolder = public + '/files' + '/' + subFolder;
+        uploadFolder = public + '/files' + '/' + typeFolder + '/' + subFolder;
+        // Создаем папку
+        fs.mkdirSync(uploadFolder);  
+        // указываем эту папку для сохраннеия файла
+        cb(null, uploadFolder); 
+        break;
+      case '/addVoice/': 
+        // создаем имя для папки
+        subFolder = uuid.v4();
+        // сохраняем название папки для voice
+        typeFolder = 'record-audio';
+        // прописываем путь к создаваемой папке
+        uploadFolder = public + '/files' + '/' + typeFolder + '/' + subFolder;
+        // Создаем папку
+        fs.mkdirSync(uploadFolder);
+        // указываем эту папку для сохраннеия файла
+        cb(null, uploadFolder); 
+        break;
+      case '/addRecordVideo/':
+        // создаем имя для папки
+        subFolder = uuid.v4();
+        // сохраняем название папки для voice
+        typeFolder = 'record-video';
+        // прописываем путь к создаваемой папке
+        uploadFolder = public + '/files' + '/' + typeFolder + '/' + subFolder;
         // Создаем папку
         fs.mkdirSync(uploadFolder);
         // указываем эту папку для сохраннеия файла
         cb(null, uploadFolder);
-        break;
-      case '/add-voice/':
-        cb(null, public + '/record-audio');
-        break;
-      case '/add-record-video/':
-        cb(null, public + '/record-video'); 
         break; 
       default:
-        console.log('unknown url');
+        console.log('create disc storage', 'unknown url');
     } 
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname);
+    console.log('file name', file)
+    switch (req.url) {
+      case '/addFile/':
+        cb(null, file.originalname);
+        break;
+      case '/addVoice/':
+        cb(null, subFolder + '.' + 'webm');
+        break;
+      case '/addRecordVideo/':
+        cb(null, subFolder + '.mp4'); 
+      break;
+      default:
+        console.log('create disc storage filename', 'unknown url');
+    }
+    
   }
-})
+})  
 
 const upload = multer({storage});
 
@@ -100,59 +148,83 @@ router.get('/getStart/', async (ctx) => {
     for( i; i > stopIndex; i -= 1) {
       messages.unshift(chat[i]);
     }
-     
+      
     resp = {
       chat: { messages },
       stat: [ stat ], 
     }
   }   
   else {  
-    // иначе в базе сообщений не больше чем 10 
+    // иначе в базе сообщений не больше чем 10  
     chat.forEach( item => messages.push( item ));
-
-    resp = {
+ 
+    resp = { 
       chat: { messages },
-      stat: [ stat ],
-    }
-  }
-    
-  const body = JSON.stringify(resp) 
-
-  ctx.response.body = body; 
-  ctx.response.status = 200;  
-})
-  
-  
-router.get('/downloadFile/:data', async (ctx) => {     
-  const{ data } = ctx.params; 
-  // разбираем полученный путь на имя папки и имя файла   
-  const arr = data.split(':'); 
- 
-  const pathToFile = public + '/' + 'files' + '/' + arr[0] + '/' + arr[1];
-   
-  ctx.response.body = fs.createReadStream(pathToFile);
- 
-  ctx.response.status = 200;   
+      stat: [ stat ],    
+    } 
+  } 
        
-}) 
+  const body = JSON.stringify(resp)             
+ 
+  ctx.response.body = body;    
+  ctx.response.status = 200;     
+})
+ 
 
 router.get('/reloadingMessages/:numId', async ctx => {  
-  const {numId} = ctx.params;
-  console.log(numId)
+  const {numId} = ctx.params; 
+
+  if(numId == 0) {
+    ctx.response.status = 200;
+  
+    return;    
+  }
+  // в этот массив будем набирать десять сообщений   
+  let messages = [];   
  
-  ctx.response.status = 200;
+  
+  if( numId - 10 >= 0) { 
+    for(let i = numId - 1; i >= numId - 10; i -= 1) {    
+      messages.push(chat[i]);  
+    } 
+  } else {
+    for(let i = numId - 1; i >= 0; i -= 1) {
+      messages.push(chat[i]); 
+    } 
+  }
+  
+  const json = JSON.stringify({messages});
+
+  ctx.response.body = json;  
+  ctx.response.status = 200; 
 })
 
-router.post('/addFile/', upload.single('file'), async ctx => {  
-  const { fieldname: type, originalname: name, mimetype, path: url} = ctx.request.file;
+// Получаем список напоминаний если они есть    
+router.get('/getNotification/', async ctx => {      
+  let data = [];   
+
+  if(notifi.size === 0) {     
+    data.push({status: false}); 
+  } else { 
+    notifi.forEach( el => data.push(el));  
+  };
+  const body = JSON.stringify(data);
+
+  ctx.response.body = body;   
+  ctx.response.status = 200;  
+}) 
+
+// Загрузка файла на сервер
+router.post('/addFile/', upload.single('file'), async ctx => {   
+  const { originalname: name, mimetype } = ctx.request.file;
   
   
   // Добавляем статистику
-  if(mimetype.startsWith('image')) stat.add('image-files'); 
+  if(mimetype.startsWith('image')) stat.add('image-files');  
   if(mimetype.startsWith('video')) stat.add('video-files'); 
   if(mimetype.startsWith('audio')) stat.add('audio-files'); 
  
-  // расщитываем порядковый номер нового сообщения
+  // рассчитываем порядковый номер нового сообщения
   let newNumId = chat[chat.length - 1].numId + 1; 
   
   const dataMessage = {     
@@ -161,7 +233,7 @@ router.post('/addFile/', upload.single('file'), async ctx => {
     message: `${newNumId}file uploaded: ${name}`,          
     name,   
     mimetype,
-    url: subFolder + ':' + name,    
+    url: typeFolder + ':' + subFolder + ':' + name,    
     date: format(new Date(), 'dd.MM.yy HH:mm'),        
   }   
     
@@ -174,7 +246,7 @@ router.post('/addFile/', upload.single('file'), async ctx => {
         chat[chat.length - 1],   
       ]   
     },
-    stat: [stat], 
+    stat: [stat],  
   }
 
   const body = JSON.stringify(resp);  
@@ -183,20 +255,100 @@ router.post('/addFile/', upload.single('file'), async ctx => {
   ctx.response.status = 200;              
 })  
 
-// router.post('/add-voice/', upload.single('file'), async ctx => { 
-//   console.log('ctx.request.file', ctx.request.file); 
-//   stat.add('files');
-//   console.log('stat', stat)
+// Скачивание файла с сервера
+router.get('/downloadFile/:data', async (ctx) => {       
+  const{ data } = ctx.params; 
+  // разбираем полученный путь на имя папки и имя файла   
+  const arr = data.split(':'); 
+ 
+  const pathToFile = public + '/' + 'files' + '/' + arr[0] + '/' + arr[1] + '/' + arr[2];
+     
+  ctx.response.body = fs.createReadStream(pathToFile);
+ 
+  ctx.response.status = 200;      
+       
+})
 
-//   ctx.response.status = 200;            
-// })
+ 
+// Получаем аудио запись
+router.post('/addVoice/', upload.single('file'), async ctx => { 
+  console.log('ctx.response.file', ctx.request.file)
+  const { filename: name, mimetype } = ctx.request.file;
 
-// router.post('/add-record-video/', upload.single('file'), async ctx => { 
-//   console.log('ctx.request.file', ctx.request.file); 
+  // Добавляем статистику
+  stat.add('voice');
+
+  // рассчитываем порядковый номер нового сообщения 
+  let newNumId = chat[chat.length - 1].numId + 1; 
   
+  const dataMessage = {     
+    id: 'You',  
+    numId: newNumId,     
+    message: `${newNumId}file uploaded: ${name}`,          
+    name,   
+    mimetype,
+    url: typeFolder + ':' + subFolder + ':' + name,     
+    date: format(new Date(), 'dd.MM.yy HH:mm'),        
+  }   
+     
+  chat.push(dataMessage);
 
-//   ctx.response.status = 200;            
-// })
+  // Формируем данные для ответа клиенту 
+  const resp = {
+    chat: {  
+      messages: [ 
+        chat[chat.length - 1],   
+      ]   
+    },
+    stat: [stat],  
+  }
+
+  const body = JSON.stringify(resp);  
+
+
+  ctx.response.body = body;
+  ctx.response.status = 200;            
+})
+
+// Получаем видео запись
+router.post('/addRecordVideo/', upload.single('file'), async ctx => { 
+  console.log('ctx.response.file', ctx.request.file)
+  const { filename: name, mimetype } = ctx.request.file;
+
+  // Добавляем статистику
+  stat.add('video-message');  
+
+  // рассчитываем порядковый номер нового сообщения 
+  let newNumId = chat[chat.length - 1].numId + 1; 
+  
+  const dataMessage = {      
+    id: 'You',  
+    numId: newNumId,     
+    message: `${newNumId}file uploaded: ${name}`,          
+    name,   
+    mimetype,
+    url: typeFolder + ':' + subFolder + ':' + name,     
+    date: format(new Date(), 'dd.MM.yy HH:mm'),        
+  }   
+     
+  chat.push(dataMessage);
+
+  // Формируем данные для ответа клиенту 
+  const resp = {
+    chat: {  
+      messages: [ 
+        chat[chat.length - 1],   
+      ]   
+    },
+    stat: [stat],  
+  }
+
+  const body = JSON.stringify(resp);  
+
+
+  ctx.response.body = body;
+  ctx.response.status = 200;            
+})
  
 
 // app.use(router());  
@@ -245,10 +397,10 @@ wsServer.on('connection', stream => {
       // расщитываем порядковый номер нового сообщения
       let newNumId = chat[chat.length - 1].numId + 1; 
 
-      const dataMessage = {
+      const dataMessage = { 
         id: 'You',
         numId: newNumId,
-        message: `${newNumId}message`,
+        message: `${newNumId}${message}`,
         date: format(new Date(), 'dd.MM.yy HH:mm'),
       }
       // добавляем данные о сообщении в общую базу чата
@@ -261,15 +413,78 @@ wsServer.on('connection', stream => {
             chat[chat.length - 1],   
           ]   
         },
-        stat: [stat], 
+        stat: [stat],  
       }
 
-      stream.send(JSON.stringify(resp));  
+      stream.send(JSON.stringify(resp));   
+      // отправляем сообщение всем клиентам активным 
+      // Array.from(wsServer.clients)     
+      // .filter( client => client.readyState === WS.OPEN)   
+      // .forEach( client => client.send(JSON.stringify(resp)));
     }
 
+    if(type === 'location') {
+      geolocation.set(stream, message);     
+    }
 
-    
+    if(type === 'schedule') {
+      // @schedule: 18:04 31.08.2019 "last day of summer"
+      // YYYY-MM-DDTHH:mm:ss.sssZ
+      // {date: YYYY-MM-DDTHH:mm:ss.sssZ, message: ...}
+      let arr = message.split(' ')
+
+      // убирааем @schedule: 
+      arr.shift();
+
+      // формируем время
+      let time = arr[0];
+      let formatTime = time + ':00:000Z';
+      // формируем дату
+      let date = arr[1];
+      date = date.split('.');
+      const formatDate = `${date[2]}-${date[1]}-${date[0]}`;
+      // формируем текст сообщения
+      arr.splice(0, 2);
+      let textMessage = arr.join(' ');
+      // формируем объект для сохранения уведомления 
+      notifi.add({
+        date: `${formatDate}T${formatTime}`,
+        message: time + ' ' + date.join('.') + ' ' + textMessage
+      })   
+    } 
+
+    // погода
+    if(type === 'chaos: weather') {
+
+    }
+
+    // время
+    if(type === 'chaos: time') {
+
+    }
+
+    // дата
+    if(type === 'chaos: date') {
+
+    }
+
+    // пробки
+    if(type === 'chaos: traffic') {
+
+    }
+
+    // сколько дней до нового года
+    if(type === 'chaos: new-year') {
+
+    }
+
   })  
+
+  
+   
+  
+  
+  
  
  
   stream.on('error', e => {  

@@ -12,12 +12,19 @@ export default class RedrawApp {
         this.formAddFile = this.app.querySelector('.form-add-file')
         this._addFile = this.app.querySelector('.add-file')
 
-        this.share = this.app.querySelector('.wr-side-shared');
+        this.share = this.app.querySelector('.wr-side-shared'); 
+
+        this.audio = document.querySelector('.audio');
 
         this.messagesList = null;
 
+        this.blob = null;
+
         this.redrawSharedStats = this.redrawSharedStats.bind(this);
         this.renderingMessage = this.renderingMessage.bind(this);
+        this.sendGeolocation = this.sendGeolocation.bind(this);
+        this.errorGeolocation = this.errorGeolocation.bind(this);
+        this.recordAudio = this.recordAudio.bind(this);
     }
 
     async start() {
@@ -31,23 +38,30 @@ export default class RedrawApp {
 
         const {chat, stat} = json;
 
-        this.renderingMessage(chat);
+        this.renderingMessage(chat, 'start');
         this.redrawSharedStats(stat[0]);
+
+        // запрос геолокации
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(this.sendGeolocation, this.errorGeolocation)
+        }
     }
 
+    async sendGeolocation(position) {
+        console.log('start get geolocation')
 
-    async getNewFile(formData) { 
-        const response = await this.http.create(formData);
-  
-        const data = await response.json();
+        const {latitude, longitude} = position.coords;
 
-        const {chat, stat} = data;
-        const {id, message, date , url} = chat
-        if (chat) this.renderingMessage(chat);
+        const data = JSON.stringify({type:'location', message: {latitude, longitude}})
 
-        if(stat) this.redrawSharedStats(stat[0]);
+        if(data) this.sendToWs(data)
     }
 
+    errorGeolocation(error) {
+        console.log(error)
+    }
+
+    // скачивание файла
     async downloadFile(path) {
         // в path мы помещаем имя папки в которой лежит необходимый файл
         // и имя файла
@@ -59,7 +73,7 @@ export default class RedrawApp {
         let link = document.createElement('a');
         link.style = 'position:fixed;top:10px;left:10px;width:100px';
         link.href = URL.createObjectURL(blob);
-        link.download = arr[1];
+        link.download = arr[2];
         document.body.append(link);
         
         link.click()
@@ -99,51 +113,189 @@ export default class RedrawApp {
         const firstMessage = this.messages.querySelector('.wrapper-message');
         // забираем из data атрибута индекс сообщения, под которым оно находится на сервере
         const numid = firstMessage.dataset.numid;
-        console.log(numid)
-
+        
+        // считываем с сервера 10 сообщений
         const response = await this.http.read(numid, 'reloadingMessages/');
+
+        try {
+            const data = await response.json();
+
+            this.renderingMessage(data, 'reloading');
+        } catch (error) {
+            console.log('no messages more yet');
+        }
+        
     }
 
     // отрисовываем сообщение в поле для сообщений
-    renderingMessage(data) {
+    renderingMessage(data, mark) {
         // перебираем chat и получаем экземпляры сообщений
         data.messages.forEach(item => {
             const message =  this.pattern.createMessage(item);
             
-            // добавляем сообщения в поле для сообщений 
-            this.messages.append(message);
+            // добавляем сообщения в поле для сообщений
+            // если метки нет значит у нас просто есть новое сообщение
+            if(!mark) this.messages.append(message);
+
+             
+            if(mark === 'start') this.messages.append(message);
+            
+
+            if(mark === 'reloading') this.messages.prepend(message);
         })
+    
 
         // Обновляем список сообщений
         this.messagesList = this.messages.querySelectorAll('.wrapper-message');
 
-        // Проверяем количество сообщений и удаляем если их больше 10
-        // this.clearMessages();
+        // получаем данные об размерах и отступах первых и последних загруженных элементах
+        const firstMessageOffsetTop = this.messagesList[0].offsetTop;
+        const lastMessageOffsetHeight = this.messagesList[data.messages.length - 1].offsetHeight
+        const lastMessageOffsetTop = this.messagesList[data.messages.length - 1].offsetTop
 
-        // прокручиваем страницу к последнему добавленному сообщению
-        this.scrollMessagesToDown()
-    }
+        // вычисляем какую высоту занимают последние загруженные сообщения
+        const allH = (lastMessageOffsetHeight + lastMessageOffsetTop) - firstMessageOffsetTop;
 
-    clearMessages() {
-        if(this.messagesList.length > 10) {
-            this.messagesList[0].remove();
-            
-            // Обновляем список сообщений
-            this.messagesList = this.messages.querySelectorAll('.wrapper-message');
+        // если меток нет значит было добавлено сообщение
+        // прокручиваем к нему
+        if(!mark) {
+            const index = this.messagesList.length - 1
+            this.scrollMessagesToDown(index)
+        };
 
-            // если загрузилось больше 10 сообщений будет перезапускаться и чистить
-            this.clearMessages();
+        // при старте прокручиваем страницу вниз
+        if(mark === 'start') this.scrollMessagesToDown(data.messages.length - 1);
+
+        // проверка чтоб сократить
+        // количество подгруженных сообщений меньше 10 и их общая занимаемая высота на странице
+        // больше поля для отображения сообщений
+        const result = (data.messages.length < 10 && allH > this.messages.offsetHeight)
+        // прокручиваем при подгрузке сообщений
+        if(mark === 'reloading' && (data.messages.length === 10 || result)) {
+            // передаем  индекс элемента к которому нужно скролить
+            // зависит от количества подгруженных сообщений
+            this.scrollMessagesToDown(data.messages.length - 1);
         }
+        
     }
 
-    scrollMessagesToDown() {
-        // находим крайнее сообщение
-        const lastMessage = this.messagesList[this.messagesList.length - 1]
-        // прокручиваем страницу к сообщению
-        lastMessage.scrollIntoView(false);
+    scrollMessagesToDown(index) {
+        this.messagesList[index].scrollIntoView(false);
         // добавляем к прокрутке 15px пэддинга
-        this.messages.scrollTo(0, this.messages.scrollTop + 15)
+        this.messages.scrollTo(0, this.messages.scrollTop + 10)
     }
+
+    async recordAudio() {
+        console.log('record audio');
+        
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
+        });
+
+        const recorder = new MediaRecorder(stream); 
+        const chunks = [];
+
+        recorder.addEventListener('start', (e) => {
+            console.log('start');
+        })
+    
+        // получение данных
+        recorder.addEventListener('dataavailable', (e) => {
+            console.log('dataavailable')
+            chunks.push(e.data);
+        })
+    
+        // stop в этом обработчике событий будет доступен массив чанков, те кусочков данных
+        recorder.addEventListener('stop', (e) => {
+            this.blob = new Blob(chunks, {
+                type: 'audio/webm',
+            });
+        
+            const formData = new FormData();
+            formData.set('file', this.blob);
+
+            this.getNewFile(formData, 'addVoice/');
+
+            console.log('stop', this.blob)
+        })
+
+
+        recorder.start();
+
+            // остановка потока
+        this.app.addEventListener('mouseup', e => {
+            if(e.target.matches('.add-voice')) {
+                recorder.stop();
+                // получаем все треки из поока и останавливаем их
+                stream.getTracks().forEach( track => track.stop());
+                console.log('recorder stop')
+            }
+        }, {once: true})
+    }
+
+
+    async recordVideo() {
+        console.log('record video');
+        
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+        });
+
+        const recorder = new MediaRecorder(stream); 
+        const chunks = [];
+
+        recorder.addEventListener('start', (e) => {
+            console.log('start');
+        })
+    
+        // получение данных
+        recorder.addEventListener('dataavailable', (e) => {
+            console.log('dataavailable')
+            chunks.push(e.data);
+        })
+    
+        // stop в этом обработчике событий будет доступен массив чанков, те кусочков данных
+        recorder.addEventListener('stop', (e) => {
+            this.blob = new Blob(chunks, {
+                type: 'video/mp4',
+            });
+        
+            const formData = new FormData();
+            formData.set('file', this.blob);
+
+            this.getNewFile(formData, 'addRecordVideo/');
+
+            console.log('stop', this.blob)
+        })
+
+
+        recorder.start();
+
+            // остановка потока
+        this.app.addEventListener('mouseup', e => {
+            if(e.target.matches('.add-video')) {
+                recorder.stop();
+                // получаем все треки из поока и останавливаем их
+                stream.getTracks().forEach( track => track.stop());
+                console.log('recorder stop')
+            }
+        }, {once: true})
+    }
+
+    // отправка файла на сервер
+    async getNewFile(formData, method) { 
+        const response = await this.http.create(formData, method);
+  
+        const data = await response.json();
+
+        const {chat, stat} = data;
+
+        if (chat) this.renderingMessage(chat);
+
+        if(stat) this.redrawSharedStats(stat[0]);
+    }
+    
 
     // открытие поля статистики на клиенте
     openShare() {

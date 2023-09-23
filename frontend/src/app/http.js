@@ -10,7 +10,6 @@ export default class Http {
                 headers: {
                     'Content-Type': 'application/json', // чтоб не получать данные как строку, так как мы по сути отправляем строку JSON
                 },
-                
             })
         }
 
@@ -23,14 +22,37 @@ export default class Http {
         if(method === 'reloadingMessages/') {
             return await fetch(`${this.domain}${method}${data}`)
         }
+
+        // получаем массив напоминаний
+        if(method === 'getNotification/') {
+            return await fetch(`${this.domain}${method}`)
+        }
     }
 
     
-    async create(formData) {
-        // загружаем файл на сервер
-        return await fetch(`${this.domain}addFile/`, { 
-            method: 'POST',
-            body: formData 
-        })  
+    async create(formData, method) {
+        if(method === 'addFile/') {
+            // загружаем файл на сервер
+            return await fetch(`${this.domain}${method}`, { 
+                method: 'POST',
+                body: formData,
+            })
+        }
+
+        if(method === 'addVoice/') {
+            // загружаем файл на сервер
+            return await fetch(`${this.domain}${method}`, { 
+                method: 'POST',
+                body: formData,
+            })
+        }
+
+        if(method === 'addRecordVideo/') {
+            // загружаем файл на сервер
+            return await fetch(`${this.domain}${method}`, { 
+                method: 'POST',
+                body: formData,
+            })
+        }
     } 
 }

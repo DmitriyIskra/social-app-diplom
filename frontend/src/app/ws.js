@@ -14,7 +14,7 @@ export default class Ws {
             const result = JSON.parse(e.data);
             
             const {chat, stat} = result;
-
+            
             if(chat && stat) {
                 renderingMessage(chat);
                 redrawSharedStats(stat[0]);

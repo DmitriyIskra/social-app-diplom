@@ -18,7 +18,7 @@ export default class Pattern {
             name.textContent = id;
 
             // если в id имя бота ставим сообщение справа и меняем стили
-            if(id != 'chaos') {
+            if(id === 'You') { 
                 wrapper.style.alignSelf = 'flex-end';
                 wrapper.style.backgroundColor = '#F1D580';
                 wrapper.style.border = '4px solid #C9AD58';
@@ -32,7 +32,7 @@ export default class Pattern {
             // если там есть ссылка преобразуем
             if(this.regExp.test(message)) {
                 text.innerHTML = message.replace(this.regExpReplace, this.template);
-            } else if (url) {              
+            } else if (url) {             
                 // если есть url значит это файл, преобразуем
 
                 const link = document.createElement('a');
@@ -74,7 +74,7 @@ export default class Pattern {
             //             prev.src = url;
             //             console.log('url pattern', url)
             //             wrPrev.append(prev);
-            //     }
+            //     } 
 
             //     wrapper.append(wrPrev);
             // }
@@ -83,7 +83,6 @@ export default class Pattern {
             wrapper.append(dateMessage);
 
             return wrapper;
-
         
     }
 }

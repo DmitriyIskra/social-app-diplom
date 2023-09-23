@@ -1,3 +1,4 @@
+import Notifi from './Notification';
 import ControllApp from "./controlApp";
 import RedrawApp from './redrawApp';
 import Pattern from './pattern';
@@ -16,7 +17,8 @@ const ws = new Ws('ws://localhost:7070');
 const app = document.querySelector('.wrapper-app');
 const pattern = new Pattern();
 const http = new Http('http://localhost:7070/');
+const notification = new Notifi(http);
 
 const redrawApp = new RedrawApp(app, pattern, http, ws);
-const controllApp = new ControllApp(redrawApp);
+const controllApp = new ControllApp(redrawApp, notification);
 controllApp.init();
