@@ -94,26 +94,40 @@ export default class ControllApp {
             return;
         }
 
+        
         if(message.startsWith('@chaos:')) {
+            // @chaos: weather
             if(message.indexOf('weather') >= 0) {
-
+                console.log(message)
+                this.redraw.getMessageWs('weather', message);
+                this.formText.reset();
             }
 
+            // @chaos: time
             if(message.indexOf('time') >= 0) {
+                this.redraw.getMessageWs('time', message);
+                this.formText.reset();
+            } 
 
+            // @chaos: date
+            if(message.indexOf('date') >= 0) { 
+                this.redraw.getMessageWs('date', message);
+                this.formText.reset();
             }
 
-            if(message.indexOf('date') >= 0) {
-
-            }
-
+            // @chaos: traffic
             if(message.indexOf('traffic') >= 0) {
-
+                this.redraw.getMessageWs('traffic', message);
+                this.formText.reset();
             }
 
+            // @chaos: new-year
             if(message.indexOf('new-year') >= 0) {
-
+                this.redraw.getMessageWs('new-year', message);
+                this.formText.reset();
             }
+
+            return;
         }
 
         // отправляем текст в функцию в веб сокет

@@ -8,12 +8,14 @@ const WS = require('ws');
 const fs = require('fs');
 const koaStatic = require('koa-static');
 const path = require('path');
-const multer = require('@koa/multer');
+const multer = require('@koa/multer'); 
  
 const { chat } = require('./db/chat');
 const { stat } = require('./db/stat');
 const { geolocation } = require('./db/geolocation.js');
 const { notifi } = require('./db/notifi');
+const { weather } = require('./public/bot/weather');
+const { traffic } = require('./public/bot/traffic');
 
 const regExp = /(?:http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(?:\/\S*)?/g;
 
@@ -340,11 +342,11 @@ router.post('/addRecordVideo/', upload.single('file'), async ctx => {
         chat[chat.length - 1],   
       ]   
     },
-    stat: [stat],  
+    stat: [stat],
   }
 
   const body = JSON.stringify(resp);  
-
+ 
 
   ctx.response.body = body;
   ctx.response.status = 200;            
@@ -379,9 +381,7 @@ wsServer.on('connection', stream => {
   
     const {type, message} = data; 
 
-
-
-
+    
     // если тип присланного сообщения text проверяем на наличие ссылки
     if(type === 'text') {
       // проверяем на наличие ссылки
@@ -445,7 +445,7 @@ wsServer.on('connection', stream => {
       const formatDate = `${date[2]}-${date[1]}-${date[0]}`;
       // формируем текст сообщения
       arr.splice(0, 2);
-      let textMessage = arr.join(' ');
+      let textMessage = arr.join(' '); 
       // формируем объект для сохранения уведомления 
       notifi.add({
         date: `${formatDate}T${formatTime}`,
@@ -454,28 +454,116 @@ wsServer.on('connection', stream => {
     } 
 
     // погода
-    if(type === 'chaos: weather') {
+    if(type === 'weather') {
+      
+      const random = Math.floor(Math.random() * (2 + 1));
+      const answer = weather[random];
 
+      const message = {
+        id: 'chaos', 
+        message: `${answer}`,
+        date: format(new Date(), 'dd.MM.yy HH:mm'),
+      } 
+         
+      // Формируем данные для ответа клиенту
+      const resp = {
+        chat: {  
+          messages: [
+            message,   
+          ]   
+        } 
+      }
+
+      stream.send(JSON.stringify(resp));
     }
 
     // время
-    if(type === 'chaos: time') {
+    if(type === 'time') {
+      const message = {
+        id: 'chaos', 
+        message: `Сейчас ${format(new Date(), 'HH:mm')} по Москве`,
+        date: format(new Date(), 'dd.MM.yy HH:mm'),
+      } 
+         
+      // Формируем данные для ответа клиенту
+      const resp = {
+        chat: {  
+          messages: [
+            message,   
+          ]   
+        } 
+      }
 
+      stream.send(JSON.stringify(resp));
     }
 
     // дата
-    if(type === 'chaos: date') {
+    if(type === 'date') {
+      const message = {
+        id: 'chaos', 
+        message: `Сегодня ${format(new Date(), 'dd.MM.yyyy')}`,
+        date: format(new Date(), 'dd.MM.yy HH:mm'),
+      } 
+         
+      // Формируем данные для ответа клиенту
+      const resp = {
+        chat: {  
+          messages: [
+            message,   
+          ]   
+        } 
+      }
 
+      stream.send(JSON.stringify(resp));
     }
 
     // пробки
-    if(type === 'chaos: traffic') {
+    if(type === 'traffic') {
+      const random = Math.floor(Math.random() * (2 + 1));
+      const answer = traffic[random];
 
+      const message = {
+        id: 'chaos', 
+        message: `${answer}`,
+        date: format(new Date(), 'dd.MM.yy HH:mm'),
+      } 
+         
+      // Формируем данные для ответа клиенту
+      const resp = {
+        chat: {  
+          messages: [
+            message,   
+          ]   
+        } 
+      }
+
+      stream.send(JSON.stringify(resp));
     }
 
     // сколько дней до нового года
-    if(type === 'chaos: new-year') {
+    if(type === 'new-year') {
+      const currentYear = new Date().getFullYear();
+      const until = Date.parse('2023-11-31');
+      const now = Date.parse(new Date());
+      const daysLeft = Math.round((until - now) / 1000 / 60 / 60 / 24);
 
+
+      const message = {
+        id: 'chaos', 
+        message: `До нового года осталось ${daysLeft} дней`,
+        date: format(new Date(), 'dd.MM.yy HH:mm'),
+      }
+         
+      // Формируем данные для ответа клиенту
+      const resp = {
+        chat: {  
+          messages: [ 
+            message,   
+          ]   
+        } 
+      }
+
+      stream.send(JSON.stringify(resp));
     }
 
   })  

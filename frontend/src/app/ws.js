@@ -5,20 +5,25 @@ export default class Ws {
 
     registerWsEvents(renderingMessage, redrawSharedStats) {
         
-        this.ws.addEventListener('open', (e) => {
+        this.ws.addEventListener('open', (e) => { 
             console.log('ws open');
         })
          
         
         this.ws.addEventListener('message', (e) => { 
             const result = JSON.parse(e.data);
-            
+            console.log(e.data)
             const {chat, stat} = result;
             
             if(chat && stat) {
                 renderingMessage(chat);
                 redrawSharedStats(stat[0]);
 
+                return;
+            } 
+
+            if(chat) {
+                renderingMessage(chat);
                 return;
             }
             
