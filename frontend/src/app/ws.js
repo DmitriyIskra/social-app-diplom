@@ -5,7 +5,7 @@ export default class Ws {
 
     registerWsEvents(renderingMessage, redrawSharedStats) {
         
-        this.ws.addEventListener('open', (e) => { 
+        this.ws.addEventListener('open', () => { 
             console.log('ws open');
         })
          
@@ -30,11 +30,11 @@ export default class Ws {
             console.log('Result of connecting  to ws: ' + result.message);
         })
         
-        this.ws.addEventListener('error', (e) => {
+        this.ws.addEventListener('error', () => {
             console.log('error');
         })
         
-        this.ws.addEventListener('close', (e) => {
+        this.ws.addEventListener('close', () => {
             console.log('ws close'); 
         })
  

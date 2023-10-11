@@ -235,10 +235,12 @@ a {
     border-right: 2px solid #82d7bb;
     border-bottom: 2px solid #82d7bb;
     background-color: #F1F1F1;
+
+    flex-direction: column;
 }
 
 .wr-side-shared_active {
-    display: block;
+    display: flex;
 }
 
 .header-shared-types {
@@ -291,6 +293,8 @@ a {
     font-size: 13px;
 
     align-items: flex-end;
+
+    cursor: pointer;
 }
 
 .icon-shared-type-videos {
@@ -338,6 +342,58 @@ a {
 
     color: #333333;
 }
+
+.wr-messages-share {
+    display: none;
+    max-height: 14.3vw;
+    gap: 3px;
+
+    background-color: #82d7bb;
+
+    flex-direction: column;
+    flex-grow: 1;
+
+    overflow: auto;
+}
+
+.wr-messages-share_active {
+    display: flex;
+}
+
+.message-share {
+    display: flex;
+    padding: 2px;
+    gap: 2px;
+
+    flex-direction: column;
+}
+
+.share-user-name {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    color: blue;
+}
+
+.share-message-date {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    text-align: right;
+
+    color: orange;
+}
+
+.text-message-share {
+    margin-top: 5px;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+}
+
+.link-download-share {
+    color: blueviolet;
+}
+
+
 
 
 

@@ -1,16 +1,16 @@
 export default class Pattern {
     constructor() {
-        this.regExp = /(?:http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(?:\/\S*)?/;
-        this.regExpReplace = /((?:http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(?:\/\S*)?)/g;
+        this.regExp = /(?:http|https|ftp|ftps):\/\/[a-zA-Z0-9\-.]+\.[a-zA-Z]{2,3}(?:\/\S*)?/;
+        this.regExpReplace = /((?:http|https|ftp|ftps):\/\/[a-zA-Z0-9\-.]+\.[a-zA-Z]{2,3}(?:\/\S*)?)/g;
         this.template = '<a class="message-link" href="$1">$1</a>';
     }
 
     createMessage(data) {
-        const {id, numId, message, date , url, mimetype, name: nameFile} = data; 
+        const {id, numId, message, date , url, name: nameFile} = data; 
             // Обертка для сообщения
             const wrapper = document.createElement('div');
             wrapper.classList.add('wrapper-message')
-            wrapper.dataset.numid = numId;
+            wrapper.dataset.numid = numId; 
 
             // поле именеи
             const name = document.createElement('div');
@@ -63,26 +63,76 @@ export default class Pattern {
 
             wrapper.append(name);
 
-            // Превью, если есть необходимость
-            // if(mimetype) {
-            //     const wrPrev = document.createElement('div');
-            //     wrPrev.classList.add('wr-prev-message');
-            //     switch(mimetype) {
-            //         case 'image/jpeg': 
-            //             const prev = document.createElement('img');
-            //             prev.classList.add('prev-message');
-            //             prev.src = url;
-            //             console.log('url pattern', url)
-            //             wrPrev.append(prev);
-            //     } 
-
-            //     wrapper.append(wrPrev);
-            // }
 
             wrapper.append(text);
             wrapper.append(dateMessage);
 
             return wrapper;
         
+    }
+
+    createShare(data) {
+        
+        const messages = [];
+
+        const wrMessageList = document.createElement('ul');
+        wrMessageList.classList.add('wr-messages-share');
+
+        // !!!!!!!!!!!!!!!!!!!!!!!! МЕСТО ДЛЯ ЗАГЛУШКИ ЕСЛИ ПУСТО
+
+        data.forEach( el => {
+            const {message, date, url, name: nameFile} = el;
+
+            const messageShare = document.createElement('li');
+            messageShare.classList.add('message-share');
+
+            // // имя от кого сообщение
+            // const userName = document.createElement('div');
+            // userName.classList.add('share-user-name');
+
+            const dateShare = document.createElement('div');
+            dateShare.classList.add('share-message-date');
+            dateShare.textContent = date;
+
+            // создаем поле для тела сообщения
+            const textMessageShare = document.createElement('div');
+            textMessageShare.classList.add('text-message-share');
+
+            if(el.type === 'video-files' 
+            || el.type === 'image-files' 
+            || el.type === 'audio-files'
+            || el.type === 'voice-message'
+            || el.type === 'video-message') {
+
+                const link = document.createElement('a');
+                const title = document.createElement('div');
+                link.classList.add('link-download-share');
+                link.href = '#';
+
+                // отсюда мы будем получаь путь для создания
+                // ссылки для скачивания
+                link.setAttribute('data-path', url);
+                link.textContent = nameFile;
+
+                title.textContent = `file:`;
+
+                textMessageShare.append(title);
+                textMessageShare.append(link);
+                
+            }
+
+            if(el.type === 'links') {
+                const formatMessage = message.replace(this.regExpReplace, this.template);
+                textMessageShare.innerHTML = formatMessage;
+            }
+
+
+            messageShare.append(dateShare);
+            messageShare.append(textMessageShare);
+
+            messages.push(messageShare);
+        })
+
+        return messages;
     }
 }

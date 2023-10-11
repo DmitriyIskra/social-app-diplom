@@ -3,7 +3,7 @@ export default class RedrawApp {
         this.app = app;
         this.pattern = pattern;
         this.http = http; 
-        this.ws = ws;
+        this.ws = ws; 
 
         this.formText = this.app.querySelector('.form-add-text');
         this.inputText = this.formText.querySelector('.type-text');
@@ -13,6 +13,7 @@ export default class RedrawApp {
         this._addFile = this.app.querySelector('.add-file')
 
         this.share = this.app.querySelector('.wr-side-shared'); 
+        this.wrMessagesShare = this.app.querySelector('.wr-messages-share');
 
         this.audio = document.querySelector('.audio');
 
@@ -27,7 +28,7 @@ export default class RedrawApp {
         this.recordAudio = this.recordAudio.bind(this);
     }
 
-    async start() {
+    async start() { 
         // запускаем слушатели событий ws
         this.ws.registerWsEvents(this.renderingMessage, this.redrawSharedStats);
 
@@ -161,7 +162,7 @@ export default class RedrawApp {
         if(!mark) {
             const index = this.messagesList.length - 1
             this.scrollMessagesToDown(index)
-        };
+        }
 
         // при старте прокручиваем страницу вниз
         if(mark === 'start') this.scrollMessagesToDown(data.messages.length - 1);
@@ -195,7 +196,7 @@ export default class RedrawApp {
         const recorder = new MediaRecorder(stream); 
         const chunks = [];
 
-        recorder.addEventListener('start', (e) => {
+        recorder.addEventListener('start', () => {
             console.log('start');
         })
     
@@ -206,7 +207,7 @@ export default class RedrawApp {
         })
     
         // stop в этом обработчике событий будет доступен массив чанков, те кусочков данных
-        recorder.addEventListener('stop', (e) => {
+        recorder.addEventListener('stop', () => {
             this.blob = new Blob(chunks, {
                 type: 'audio/webm',
             });
@@ -245,7 +246,7 @@ export default class RedrawApp {
         const recorder = new MediaRecorder(stream); 
         const chunks = [];
 
-        recorder.addEventListener('start', (e) => {
+        recorder.addEventListener('start', () => {
             console.log('start');
         })
     
@@ -256,7 +257,7 @@ export default class RedrawApp {
         })
     
         // stop в этом обработчике событий будет доступен массив чанков, те кусочков данных
-        recorder.addEventListener('stop', (e) => {
+        recorder.addEventListener('stop', () => {
             this.blob = new Blob(chunks, {
                 type: 'video/mp4',
             });
@@ -302,9 +303,41 @@ export default class RedrawApp {
         this.share.classList.add('wr-side-shared_active');
     }
 
+    // получаем список сообщений по типу
+    async getShare(type) {
+        const res = await this.http.read(type, 'getShared/');
+        const result = await res.json();
+        
+        if(result.length > 0) {
+            this.clearShareMessages();
+
+            this.wrMessagesShare.classList.add('wr-messages-share_active');
+
+            this.renderingShare(result);
+        }
+    }
+
+    renderingShare(data) {
+        const messages = this.pattern.createShare(data);
+        
+        messages.forEach( el => {
+            this.wrMessagesShare.append(el);
+        })
+    }
+
+    // очистка загруженных share
+    clearShareMessages() {
+        if(this.wrMessagesShare.children.length > 0) {
+            [...this.wrMessagesShare.children].forEach( el => el.remove());
+        }
+    }
+ 
     // закрытие поля статистики на клиенте
     closeShare() {
+        this.wrMessagesShare.classList.remove('wr-messages-share_active');
         this.share.classList.remove('wr-side-shared_active');
+
+        this.clearShareMessages();
     }
 
     // заставляем работать кнопку добавления файла

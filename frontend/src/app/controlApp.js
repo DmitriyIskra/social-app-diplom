@@ -39,12 +39,13 @@ export default class ControllApp {
         this.formAddFile.addEventListener('dragover', this.onDragOver);
         this.formAddFile.addEventListener('drop', this.onDrop);
 
-        
     }
 
     onClick(e) {
+        
         if(e.target.matches('.icon-open-shared-side')) {
             this.redraw.openShare();
+            console.log('open share')
         }
 
         if(e.target.matches('.close-shared-titles')) {
@@ -55,11 +56,22 @@ export default class ControllApp {
             this.redraw.addFile();
         }
 
-        if(e.target.matches('.link-download')) {
+        if(e.target.matches('.link-download') 
+        || e.target.matches('.link-download-share')) {
+
             e.preventDefault();
             const path = e.target.dataset.path;
             // const string = url.substr(url.indexOf('files'));
             this.redraw.downloadFile(path);
+
+        }
+
+        // получаем тип запроса на shared
+        if(e.target.closest('.wr-shared-type-item')) {
+            const activeEl = e.target.closest('.wr-shared-type-item');
+            const type = activeEl.children[2].dataset.typeshared;
+
+            this.redraw.getShare(type);
         }
     }
 
@@ -73,10 +85,6 @@ export default class ControllApp {
             console.log('record video')
            this.redraw.recordVideo();
         }
-    }
-
-    onMouseUp(e, data) {
-
     }
  
     onSubmit(e) {
@@ -111,7 +119,7 @@ export default class ControllApp {
 
             // @chaos: date
             if(message.indexOf('date') >= 0) { 
-                this.redraw.getMessageWs('date', message);
+                this.redraw.getMessageWs('date', message); 
                 this.formText.reset();
             }
 
@@ -144,7 +152,7 @@ export default class ControllApp {
         }
     } 
 
-    onChange(e) {  
+    onChange() {  
         const formData = new FormData(this.formAddFile);
         
         this.redraw.getNewFile(formData, 'addFile/');

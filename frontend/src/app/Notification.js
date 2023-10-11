@@ -3,7 +3,7 @@ export default class Notifi {
         this.http = http;
         this.notification = null;
 
-        this.closeNitificaction = this.closeNitificaction.bind(this)
+        this.closeNitificaction = this.closeNitificaction.bind(this);
     }
 
     async init() {
@@ -37,7 +37,7 @@ export default class Notifi {
     }
 
     registerEvents() {
-        this.notification.addEventListener('click', e => this.closeNitificaction)
+        this.notification.addEventListener('click', () => this.closeNitificaction)
     }
 
     async checkPermission(message) {

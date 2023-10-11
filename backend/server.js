@@ -7,7 +7,7 @@ const { format } = require('date-fns');
 const WS = require('ws');
 const fs = require('fs');
 const koaStatic = require('koa-static');
-const path = require('path');
+const path = require('path'); 
 const multer = require('@koa/multer'); 
  
 const { chat } = require('./db/chat');
@@ -17,14 +17,14 @@ const { notifi } = require('./db/notifi');
 const { weather } = require('./public/bot/weather');
 const { traffic } = require('./public/bot/traffic');
 
-const regExp = /(?:http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(?:\/\S*)?/g;
+const regExp = /(?:http|https|ftp|ftps):\/\/[a-zA-Z0-9\-.]+\.[a-zA-Z]{2,3}(?:\/\S*)?/g;
 
 const Router = require('koa-router');  
 const router = new Router();    
 
 const app = new Koa();    
 
-const public = path.join(__dirname, '/public'); 
+const publicFolder = path.join(__dirname, '/public'); 
 
 // для добавления имени новой папки куда загружен файл
 // что-бы пользоваться глобально 
@@ -42,7 +42,7 @@ app.use(koaBody({
   }));  
 
 
-app.use(koaStatic(public));
+app.use(koaStatic(publicFolder));
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -56,16 +56,16 @@ const storage = multer.diskStorage({
         // сохраняем по типу файла
         if(file.mimetype.startsWith('image')) {
           typeFolder = 'img';
-        }; 
+        } 
         if(file.mimetype.startsWith('video')) {
           typeFolder = 'video-files';
-        }; 
+        } 
         if(file.mimetype.startsWith('audio')) {
           typeFolder = 'audio-files';
-        };
+        }
 
         // прописываем путь к создаваемой папке
-        uploadFolder = public + '/files' + '/' + typeFolder + '/' + subFolder;
+        uploadFolder = publicFolder + '/files' + '/' + typeFolder + '/' + subFolder;
         // Создаем папку
         fs.mkdirSync(uploadFolder);  
         // указываем эту папку для сохраннеия файла
@@ -77,7 +77,7 @@ const storage = multer.diskStorage({
         // сохраняем название папки для voice
         typeFolder = 'record-audio';
         // прописываем путь к создаваемой папке
-        uploadFolder = public + '/files' + '/' + typeFolder + '/' + subFolder;
+        uploadFolder = publicFolder + '/files' + '/' + typeFolder + '/' + subFolder;
         // Создаем папку
         fs.mkdirSync(uploadFolder);
         // указываем эту папку для сохраннеия файла
@@ -89,7 +89,7 @@ const storage = multer.diskStorage({
         // сохраняем название папки для voice
         typeFolder = 'record-video';
         // прописываем путь к создаваемой папке
-        uploadFolder = public + '/files' + '/' + typeFolder + '/' + subFolder;
+        uploadFolder = publicFolder + '/files' + '/' + typeFolder + '/' + subFolder;
         // Создаем папку
         fs.mkdirSync(uploadFolder);
         // указываем эту папку для сохраннеия файла
@@ -172,7 +172,7 @@ router.get('/getStart/', async (ctx) => {
   ctx.response.status = 200;     
 })
  
-
+// Подгрузка сообщений
 router.get('/reloadingMessages/:numId', async ctx => {  
   const {numId} = ctx.params; 
 
@@ -209,7 +209,7 @@ router.get('/getNotification/', async ctx => {
     data.push({status: false}); 
   } else { 
     notifi.forEach( el => data.push(el));  
-  };
+  }
   const body = JSON.stringify(data);
 
   ctx.response.body = body;   
@@ -238,6 +238,11 @@ router.post('/addFile/', upload.single('file'), async ctx => {
     url: typeFolder + ':' + subFolder + ':' + name,    
     date: format(new Date(), 'dd.MM.yy HH:mm'),        
   }   
+
+  // Добавляем тип сообщения
+  if(mimetype.startsWith('image')) dataMessage.type = 'image-files';  
+  if(mimetype.startsWith('video')) dataMessage.type = 'video-files'; 
+  if(mimetype.startsWith('audio')) dataMessage.type = 'audio-files';
     
   chat.push(dataMessage);  
  
@@ -249,7 +254,7 @@ router.post('/addFile/', upload.single('file'), async ctx => {
       ]   
     },
     stat: [stat],  
-  }
+  } 
 
   const body = JSON.stringify(resp);  
   ctx.response.body = body;
@@ -263,7 +268,7 @@ router.get('/downloadFile/:data', async (ctx) => {
   // разбираем полученный путь на имя папки и имя файла   
   const arr = data.split(':'); 
  
-  const pathToFile = public + '/' + 'files' + '/' + arr[0] + '/' + arr[1] + '/' + arr[2];
+  const pathToFile = publicFolder + '/' + 'files' + '/' + arr[0] + '/' + arr[1] + '/' + arr[2];
      
   ctx.response.body = fs.createReadStream(pathToFile);
  
@@ -288,6 +293,7 @@ router.post('/addVoice/', upload.single('file'), async ctx => {
     numId: newNumId,     
     message: `${newNumId}file uploaded: ${name}`,          
     name,   
+    type: 'voice-message',
     mimetype,
     url: typeFolder + ':' + subFolder + ':' + name,     
     date: format(new Date(), 'dd.MM.yy HH:mm'),        
@@ -315,19 +321,20 @@ router.post('/addVoice/', upload.single('file'), async ctx => {
 // Получаем видео запись
 router.post('/addRecordVideo/', upload.single('file'), async ctx => { 
   console.log('ctx.response.file', ctx.request.file)
-  const { filename: name, mimetype } = ctx.request.file;
+  const { filename: name, mimetype } = ctx.request.file; 
 
   // Добавляем статистику
   stat.add('video-message');  
-
-  // рассчитываем порядковый номер нового сообщения 
+ 
+  // рассчитываем порядковый номер нового сообщения  
   let newNumId = chat[chat.length - 1].numId + 1; 
-  
+   
   const dataMessage = {      
     id: 'You',  
     numId: newNumId,     
     message: `${newNumId}file uploaded: ${name}`,          
     name,   
+    type: 'video-message',
     mimetype,
     url: typeFolder + ':' + subFolder + ':' + name,     
     date: format(new Date(), 'dd.MM.yy HH:mm'),        
@@ -340,16 +347,27 @@ router.post('/addRecordVideo/', upload.single('file'), async ctx => {
     chat: {  
       messages: [ 
         chat[chat.length - 1],   
-      ]   
+      ]    
     },
-    stat: [stat],
+    stat: [stat], 
   }
 
-  const body = JSON.stringify(resp);  
+  const body = JSON.stringify(resp);      
  
-
-  ctx.response.body = body;
+ 
+  ctx.response.body = body;  
   ctx.response.status = 200;            
+}) 
+
+
+// Получаем список сообщений по типу
+router.get('/getShared/:type', async ctx => {
+  const { type } = ctx.params;
+  
+  const data = chat.filter( el => el.type === type );
+
+  ctx.response.body = JSON.stringify(data);
+  ctx.response.status = 200;
 })
  
 
@@ -384,15 +402,7 @@ wsServer.on('connection', stream => {
     
     // если тип присланного сообщения text проверяем на наличие ссылки
     if(type === 'text') {
-      // проверяем на наличие ссылки
-      let testDomain = regExp.test(message);
-
-      if(testDomain) {
-        // если ссылка есть получаем их колличество
-        let amountDomains = message.match(regExp).length;    
-        // обновляем статистику
-        stat.links += amountDomains;        
-      }  
+        
 
       // расщитываем порядковый номер нового сообщения
       let newNumId = chat[chat.length - 1].numId + 1; 
@@ -403,6 +413,19 @@ wsServer.on('connection', stream => {
         message: `${newNumId}${message}`,
         date: format(new Date(), 'dd.MM.yy HH:mm'),
       }
+
+      // проверяем на наличие ссылки
+      let testDomain = regExp.test(message);
+
+      if(testDomain) {
+        // если ссылка есть получаем их колличество
+        let amountDomains = message.match(regExp).length;    
+        // обновляем статистику
+        stat.links += amountDomains;  
+        // Добавляем тип links если есть ссылка
+        dataMessage.type = 'links';
+      }
+
       // добавляем данные о сообщении в общую базу чата
       chat.push(dataMessage);
  
@@ -542,7 +565,6 @@ wsServer.on('connection', stream => {
 
     // сколько дней до нового года
     if(type === 'new-year') {
-      const currentYear = new Date().getFullYear();
       const until = Date.parse('2023-11-31');
       const now = Date.parse(new Date());
       const daysLeft = Math.round((until - now) / 1000 / 60 / 60 / 24);

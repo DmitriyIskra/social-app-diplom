@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "forever server.js",
-    "watch": "forever -w server.js"
+    "watch": "forever -w server.js",
+    "lint": "eslint ."
   },
   "author": "",
   "license": "ISC",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "date-fns": "^2.30.0",
+    "eslint": "^8.51.0",
     "koa-combine-routers": "^4.0.2"
   }
 }

@@ -4,7 +4,7 @@ import RedrawApp from './redrawApp';
 import Pattern from './pattern';
 import Http from './http';
 import Ws from "./ws";
-
+ 
 const ws = new Ws('ws://localhost:7070');
 // ws.registerWsEvents();
 

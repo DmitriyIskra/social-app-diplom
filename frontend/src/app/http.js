@@ -3,7 +3,7 @@ export default class Http {
         this.domain = domain;
     }
 
-    async read(data, method) {
+    async read(data, method) {  
         if(method === 'getStart/') {
             return await fetch(`${this.domain}${method}`, { // getStart/
                 method: 'GET',
@@ -26,6 +26,10 @@ export default class Http {
         // получаем массив напоминаний
         if(method === 'getNotification/') {
             return await fetch(`${this.domain}${method}`)
+        }
+
+        if(method === 'getShared/') {
+            return await fetch(`${this.domain}${method}${data}`)
         }
     }
 
