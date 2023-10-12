@@ -261,7 +261,7 @@ router.post('/addFile/', upload.single('file'), async ctx => {
  
   ctx.response.status = 200;              
 })  
-
+ 
 // Скачивание файла с сервера
 router.get('/downloadFile/:data', async (ctx) => {       
   const{ data } = ctx.params; 

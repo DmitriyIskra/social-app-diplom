@@ -77,7 +77,8 @@ export default class RedrawApp {
         link.download = arr[2];
         document.body.append(link);
         
-        link.click()
+        link.click();
+        
         setTimeout(() => {
             link.remove();
             URL.revokeObjectURL(link.href)
@@ -129,7 +130,7 @@ export default class RedrawApp {
     }
 
     // отрисовываем сообщение в поле для сообщений
-    renderingMessage(data, mark) {
+    renderingMessage(data, mark) { 
         // перебираем chat и получаем экземпляры сообщений
         data.messages.forEach(item => {
             const message =  this.pattern.createMessage(item);

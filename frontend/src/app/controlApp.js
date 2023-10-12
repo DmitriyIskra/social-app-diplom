@@ -159,7 +159,7 @@ export default class ControllApp {
     }
 
     onDragOver(e) {
-        e.preventDefault();
+        e.preventDefault(); 
     }
 
     onDrop(e) {
