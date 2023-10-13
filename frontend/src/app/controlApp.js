@@ -65,7 +65,7 @@ export default class ControllApp {
             this.redraw.downloadFile(path);
 
         }
-
+ 
         // получаем тип запроса на shared
         if(e.target.closest('.wr-shared-type-item')) {
             const activeEl = e.target.closest('.wr-shared-type-item');
