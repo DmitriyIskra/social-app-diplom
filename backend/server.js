@@ -5,12 +5,11 @@ const CORS = require('@koa/cors');
 const uuid = require('uuid');  
 const { format } = require('date-fns');
 const WS = require('ws');
-const fs = require('fs');
+const fs = require('fs'); 
 const koaStatic = require('koa-static');
-const path = require('path'); 
-const multer = require('@koa/multer'); 
- 
-const { chat } = require('./db/chat');
+const path = require('path');  
+const multer = require('@koa/multer');     
+const { chat } = require('./db/chat'); 
 const { stat } = require('./db/stat');
 const { geolocation } = require('./db/geolocation.js');
 const { notifi } = require('./db/notifi');
@@ -517,11 +516,11 @@ wsServer.on('connection', stream => {
         } 
       }
 
-      stream.send(JSON.stringify(resp));
+      stream.send(JSON.stringify(resp)); 
     }
 
     // дата
-    if(type === 'date') {
+    if(type === 'date') { 
       const message = {
         id: 'chaos', 
         message: `Сегодня ${format(new Date(), 'dd.MM.yyyy')}`,
